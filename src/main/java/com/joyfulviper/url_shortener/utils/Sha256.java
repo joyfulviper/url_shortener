@@ -6,7 +6,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
 public class Sha256 {
-    public static String encode(String str, int pos) {
+    public static String encode(String str, int position) {
         MessageDigest messageDigest;
         try {
             messageDigest = MessageDigest.getInstance("SHA-256");
@@ -15,6 +15,6 @@ public class Sha256 {
             throw new IllegalArgumentException(exception.getMessage());
         }
         Base64.Encoder encoder = Base64.getEncoder();
-        return encoder.encodeToString(encoder.encode(messageDigest.digest())).substring(pos, 8 + pos);
+        return encoder.encodeToString(encoder.encode(messageDigest.digest())).substring(position, 8 + position);
     }
 }
