@@ -7,6 +7,8 @@ import com.joyfulviper.url_shortener.exception.UrlValidException;
 import com.joyfulviper.url_shortener.service.UrlService;
 import com.joyfulviper.url_shortener.utils.UrlValidators;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,5 +35,16 @@ public class UrlShortenController {
             throw new UrlValidException();
     }
 
+    @GetMapping("/{shortUrl}")
+    public ResponseEntity<Url> searchByShortenUrl(@PathVariable String shortUrl) throws URISyntaxException {
+        Url url = urlService.findByShortenUrl(shortUrl);
+        URI redirectUri = new URI(url.getOriginalUrl());
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setLocation(redirectUri);
+        return ResponseEntity
+                .status(HttpStatus.SEE_OTHER)
+                .headers(httpHeaders)
+                .build();
+    }
 
 }
