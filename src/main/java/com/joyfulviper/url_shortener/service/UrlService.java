@@ -14,7 +14,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class UrlService {
 
-    //private static Map<String, Url> urlDump = new ConcurrentHashMap<>();
     private static final Map<String, Url> shortUrlDump = new ConcurrentHashMap<>();
 
     public Url save(String originalUrl) {
