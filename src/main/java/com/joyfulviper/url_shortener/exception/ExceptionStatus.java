@@ -11,7 +11,7 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 @Getter
 public enum ExceptionStatus {
 
-    NOT_FOUND_SHORT_URL(404, "해당 URL이 존재하지 않습니다", NOT_FOUND),
+    NOT_FOUND_SHORT_URL(404, "해당 URL이 존재하지 않습니다.", NOT_FOUND),
     URL_VALID_EXCEPTION(400, "URL형식이 올바르지 않습니다.", BAD_REQUEST);
 
     private final int status;

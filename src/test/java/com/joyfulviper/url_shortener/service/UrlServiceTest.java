@@ -1,6 +1,7 @@
 package com.joyfulviper.url_shortener.service;
 
 import com.joyfulviper.url_shortener.domain.Url;
+import com.joyfulviper.url_shortener.exception.NotFoundShortUrlException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -9,6 +10,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.util.HashSet;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class UrlServiceTest {
 
@@ -43,6 +45,14 @@ public class UrlServiceTest {
         urlService.findByShortenUrl(shortUrl);
         urlService.findByShortenUrl(shortUrl);
         assertThat(urlService.getRequestCount(shortUrl)).isEqualTo(3);
+    }
+
+    @DisplayName("존재하지 않는 URL 조회 테스트")
+    @Test
+    public void 존재하지_않는_URL_테스트() {
+        NotFoundShortUrlException e = assertThrows(NotFoundShortUrlException.class, () -> urlService.findByShortenUrl("asfd"));
+        assertThat(e.getMessage()).isEqualTo("해당 URL이 존재하지 않습니다.");
+
     }
 
 }
