@@ -3,8 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <title>URL Shortener</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+    <script type="text/javascript">
+        function convert(){
+            let text = $("#url_input").val();
+            if (!(text.startsWith("https://") || text.startsWith("http://"))) {
+                alert("http:// or https:// 로 시작해야합니다");
+                return false;
+            }
+            $.ajax({
+                type : 'POST',
+                url : '/',
+                data : JSON.stringify({
+                    "url" : text
+                }),
+                contentType : "application/json; charset=utf-8",
+                success : function (data) {
+                    $("#result").html("<a href=" + data.shortUrl+ ">변경 URL : " + data.shortUrl + "</a>");
+                }
+            });
+        }
+        function search() {
+            let text = $("#short_url").val();
+            if (!(text.startsWith("http://localhost:8080/"))) {
+                alert("http://localhost:8080/으로 시작해야 합니다.");
+                return false;
+            }
+            $.ajax({
+                type : 'POST',
+                url : '/search',
+                data : JSON.stringify({
+                    "url" : text
+                }),
+                contentType : "application/json; charset=utf-8",
+                success : function (data) {
+                    $("#search_result").html("<p> 해당 Url 요청 횟수: "  + data.requestCount + "</p>");
+                }
+            });
+        }
+    </script>
 </head>
 <body>
-
+<div>
+    단축할 url 입력: <input type="text" id="url_input"/>
+    <button type="button" onclick="convert();">단축</button>
+    <div id="result"></div>
+    단축 url을 통한 리다이렉트 횟수 조회: <input type="text" id="short_url"/>
+    <button type="button" onclick="search();">조회</button>
+    <div id="search_result"></div>
+</div>
 </body>
 </html>

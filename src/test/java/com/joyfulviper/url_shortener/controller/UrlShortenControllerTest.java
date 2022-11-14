@@ -75,4 +75,26 @@ public class UrlShortenControllerTest {
                 .andExpect(status().is(303));
     }
 
+    @Test
+    @DisplayName("단축 URL을 통한 요청횟수 조회 테스트")
+    public void 요청횟수_조회_테스트() throws Exception {
+        String originalUrl = "https://www.google.com/search?q=hello&oq=hel&aqs=chrome.0.0i355i433i512j46i433i512j69i57j0i433i512l4j69i61.811j0j7&sourceid=chrome&ie=UTF-8";
+        UrlDto urlDto = new UrlDto(originalUrl);
+
+        mockMvc.perform(post("/")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(urlDto)));
+
+        String shortUrl = "http://localhost:8080/US9nbHly";
+        mockMvc.perform(get(shortUrl))
+                .andExpect(status().is(303));
+
+        mockMvc.perform(post("/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new UrlDto(shortUrl))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("requestCount").value(1));
+
+    }
+
 }

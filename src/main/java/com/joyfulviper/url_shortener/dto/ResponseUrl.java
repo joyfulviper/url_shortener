@@ -1,6 +1,6 @@
 package com.joyfulviper.url_shortener.dto;
 
 
-public record ResponseUrl(String shortUrl) {
+public record ResponseUrl(String shortUrl, int requestCount) {
 
 }

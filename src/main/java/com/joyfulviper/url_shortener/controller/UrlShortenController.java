@@ -28,14 +28,14 @@ public class UrlShortenController {
         if (UrlValidators.isValid(url.url())) {
             Url requestUrl = urlService.save(url.url());
             URI uri = new URI("/" + requestUrl.getShortenUrl());
-            ResponseUrl responseUrl = new ResponseUrl("http://localhost:8080/" + requestUrl.getShortenUrl());
-            //System.out.println(responseUrl.shortUrl());
+            String shortenUrl = "http://localhost:8080/" + requestUrl.getShortenUrl();
+            ResponseUrl responseUrl = new ResponseUrl(shortenUrl, urlService.getRequestCount(requestUrl.getShortenUrl()));
             return ResponseEntity.created(uri).body(responseUrl);
         }
-            throw new UrlValidException();
+        throw new UrlValidException();
     }
 
-    @GetMapping("/{shortUrl}")
+    @GetMapping("{shortUrl}")
     public ResponseEntity<Url> searchByShortenUrl(@PathVariable String shortUrl) throws URISyntaxException {
         Url url = urlService.findByShortenUrl(shortUrl);
         URI redirectUri = new URI(url.getOriginalUrl());
@@ -45,6 +45,14 @@ public class UrlShortenController {
                 .status(HttpStatus.SEE_OTHER)
                 .headers(httpHeaders)
                 .build();
+    }
+
+    @PostMapping("search")
+    public ResponseEntity<ResponseUrl> getRequestCountByShortenUrl(@Valid @RequestBody UrlDto shortUrl) {
+        final int shortenSize = 8;
+        String key = shortUrl.url().substring(shortUrl.url().length() - shortenSize);
+        ResponseUrl responseUrl = new ResponseUrl(shortUrl.url(), urlService.getRequestCount(key));
+        return new ResponseEntity<>(responseUrl, HttpStatus.OK);
     }
 
 }

@@ -33,16 +33,19 @@ public class UrlService {
     }
 
     public Url findByShortenUrl(String shortUrl) {
+        checkEmptyUrl(shortUrl);
+        increaseRequestCount(shortUrl);
+        return shortUrlDump.get(shortUrl);
+    }
+
+    private void checkEmptyUrl(String shortUrl) {
         if (ObjectUtils.isEmpty(shortUrlDump.get(shortUrl))) {
             //log.info("shortUrl -> {}", shortUrl);
             throw new NotFoundShortUrlException();
         }
-        increaseRequestCount(shortUrl);
-
-        return shortUrlDump.get(shortUrl);
     }
-
     public Integer getRequestCount(String shortUrl) {
+        checkEmptyUrl(shortUrl);
         return shortUrlDump.get(shortUrl).getRequestCount();
     }
 
