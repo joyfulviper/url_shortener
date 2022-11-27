@@ -13,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -33,7 +34,7 @@ public class UrlShortenControllerTest {
 
     @Test
     @DisplayName("단축url 생성 컨트롤러 테스트")
-    public void 단축url_생성_테스트() throws Exception {
+    public void 단축url_생성_테스트(@Value("${domain}") String domain) throws Exception {
         String originalUrl = "https://www.google.com/search?q=hello&oq=hel&aqs=chrome.0.0i355i433i512j46i433i512j69i57j0i433i512l4j69i61.811j0j7&sourceid=chrome&ie=UTF-8";
         UrlDto urlDto = new UrlDto(originalUrl);
 
@@ -42,7 +43,7 @@ public class UrlShortenControllerTest {
                         .content(objectMapper.writeValueAsString(urlDto)))
                 .andDo(print())
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("shortUrl").value("http://localhost:8080/US9nbHly"));
+                .andExpect(jsonPath("shortUrl").value(domain + "9nbHlyWG"));//;("http://localhost:8080/US9nbHly"));
     }
 
     @Test
@@ -51,17 +52,16 @@ public class UrlShortenControllerTest {
         String originalUrl = " ";
         UrlDto urlDto = new UrlDto(originalUrl);
 
-        org.assertj.core.api.Assertions.assertThatThrownBy(
-                () -> mockMvc.perform(post("/")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(urlDto)))
-                )
-        .hasCause(new UrlValidException());
+        mockMvc.perform(post("/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(urlDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
     }
 
     @Test
     @DisplayName("단축 URL 조회 테스트")
-    public void URL_조회_테스트() throws Exception {
+    public void URL_조회_테스트(@Value("${domain}")String domain) throws Exception {
         String originalUrl = "https://www.google.com/search?q=hello&oq=hel&aqs=chrome.0.0i355i433i512j46i433i512j69i57j0i433i512l4j69i61.811j0j7&sourceid=chrome&ie=UTF-8";
         UrlDto urlDto = new UrlDto(originalUrl);
 
@@ -70,14 +70,14 @@ public class UrlShortenControllerTest {
                         .content(objectMapper.writeValueAsString(urlDto)));
                 //.andDo(print());
 
-        String shortUrl = "http://localhost:8080/US9nbHly";
+        String shortUrl = domain + "US9nbHly";
         mockMvc.perform(get(shortUrl))
-                .andExpect(status().is(303));
+                .andExpect(status().is(301));
     }
 
     @Test
     @DisplayName("단축 URL을 통한 요청횟수 조회 테스트")
-    public void 요청횟수_조회_테스트() throws Exception {
+    public void 요청횟수_조회_테스트(@Value("${domain}")String domain) throws Exception {
         String originalUrl = "https://www.google.com/search?q=hello&oq=hel&aqs=chrome.0.0i355i433i512j46i433i512j69i57j0i433i512l4j69i61.811j0j7&sourceid=chrome&ie=UTF-8";
         UrlDto urlDto = new UrlDto(originalUrl);
 
@@ -85,9 +85,9 @@ public class UrlShortenControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(urlDto)));
 
-        String shortUrl = "http://localhost:8080/US9nbHly";
+        String shortUrl = domain + "US9nbHly";
         mockMvc.perform(get(shortUrl))
-                .andExpect(status().is(303));
+                .andExpect(status().is(301));
 
         mockMvc.perform(post("/search")
                 .contentType(MediaType.APPLICATION_JSON)

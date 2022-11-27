@@ -1,2 +1,20 @@
+spring:
+  profiles:
+    active:
+      test
+---
+
+spring:
+  profiles: prod
 server:
   port: 8080
+domain: http://localhost:8080/
+
+
+---
+
+spring:
+  profiles: test
+server:
+  port: 8090
+domain: http://localhost:8090/

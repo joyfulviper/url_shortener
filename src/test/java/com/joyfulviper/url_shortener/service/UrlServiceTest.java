@@ -2,10 +2,13 @@ package com.joyfulviper.url_shortener.service;
 
 import com.joyfulviper.url_shortener.domain.Url;
 import com.joyfulviper.url_shortener.exception.NotFoundShortUrlException;
+import com.joyfulviper.url_shortener.repository.UrlRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashSet;
 
@@ -14,15 +17,22 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class UrlServiceTest {
 
-    UrlService urlService = new UrlService();
+    UrlRepository urlRepository;
+    UrlService urlService;
+
+    @BeforeEach
+    public void beforeEach() {
+        urlRepository = new UrlRepository();
+        urlService = new UrlService(urlRepository);
+    }
 
     @DisplayName("Url 변환 후 저장 테스트")
     @ParameterizedTest
     @ValueSource(strings = {"asdf", "1adsf4d1", "gasdfgbacvz123sa1&%#"})
     public void Url_변환_저장_테스트(String input) {
-        Url inputValue = urlService.save(input);
-        Url result = urlService.findByShortenUrl(inputValue.getShortenUrl());
-        assertThat(inputValue.getOriginalUrl()).isEqualTo(result.getOriginalUrl());
+        String inputValue = urlService.save(input);
+        Url result = urlService.findByShortenUrl(inputValue);
+        assertThat(inputValue).isEqualTo(result.getShortenUrl());
     }
 
     @DisplayName("원래 URL로 다시 단축 URL 생성해도 항상 새로운 단축 URL 생성 테스트 ")
@@ -31,7 +41,7 @@ public class UrlServiceTest {
         String[] input = {"asdf", "asdf", "asdf"};
         HashSet<String> set = new HashSet<>();
         for (int i = 0; i < input.length; i++) {
-            set.add(urlService.save(input[i]).getShortenUrl());
+            set.add(urlService.save(input[i]));
         }
         assertThat(set.size()).isEqualTo(3);
     }
@@ -40,7 +50,7 @@ public class UrlServiceTest {
     @Test
     public void url조회시_카운트_증가_테스트() {
 
-        String shortUrl = urlService.save("asdfadsf").getShortenUrl();
+        String shortUrl = urlService.save("asdfadsf");
         urlService.findByShortenUrl(shortUrl);
         urlService.findByShortenUrl(shortUrl);
         urlService.findByShortenUrl(shortUrl);
