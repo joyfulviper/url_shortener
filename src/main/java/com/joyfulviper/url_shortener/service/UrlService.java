@@ -2,66 +2,69 @@ package com.joyfulviper.url_shortener.service;
 
 import com.joyfulviper.url_shortener.domain.Url;
 import com.joyfulviper.url_shortener.exception.NotFoundShortUrlException;
+import com.joyfulviper.url_shortener.repository.UrlRepository;
 import com.joyfulviper.url_shortener.utils.Sha256;
-import lombok.extern.slf4j.Slf4j;
+//import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
-@Slf4j
+//@Slf4j
 @Service
 public class UrlService {
 
-    private static final Map<String, Url> shortUrlDump = new ConcurrentHashMap<>();
+    private final UrlRepository urlRepository;
+    private final int REQUEST_COUNT = 0;
 
-    public Url save(String originalUrl) {
-        int position = 0;
-        int requestCount = 0;
-        String shortUrl = Sha256.encode(originalUrl, position);
-        while (isExistByShortUrl(shortUrl)) {
-            shortUrl = Sha256.encode(originalUrl, ++position);
-        }
-        Url saveUrl = Url.builder()
-                .shortenUrl(shortUrl)
-                .originalUrl(originalUrl)
-                .requestCount(requestCount)
-                .build();
-        shortUrlDump.put(saveUrl.getShortenUrl(), saveUrl);
-        return saveUrl;
+    public UrlService(UrlRepository urlRepository) {
+        this.urlRepository = urlRepository;
+    }
+
+    public String save(String originalUrl) {
+        String shortUrl = createShortUrl(originalUrl);
+        Url saveUrl = createUrl(shortUrl, originalUrl, REQUEST_COUNT);
+        urlRepository.save(shortUrl, saveUrl);
+        return saveUrl.getShortenUrl();
     }
 
     public Url findByShortenUrl(String shortUrl) {
         checkEmptyUrl(shortUrl);
         increaseRequestCount(shortUrl);
-        return shortUrlDump.get(shortUrl);
+        return urlRepository.findByShortenUrl(shortUrl);
     }
 
     private void checkEmptyUrl(String shortUrl) {
-        if (ObjectUtils.isEmpty(shortUrlDump.get(shortUrl))) {
-            //log.info("shortUrl -> {}", shortUrl);
+        if (ObjectUtils.isEmpty(urlRepository.findByShortenUrl(shortUrl))) {
             throw new NotFoundShortUrlException();
         }
     }
+
     public Integer getRequestCount(String shortUrl) {
         checkEmptyUrl(shortUrl);
-        return shortUrlDump.get(shortUrl).getRequestCount();
-    }
-
-    private boolean isExistByShortUrl(String url) {
-        return shortUrlDump.containsKey(url);
+        return urlRepository.getRequestCount(shortUrl);
     }
 
     private void increaseRequestCount(String shortUrl) {
-        Url url = shortUrlDump.get(shortUrl);
+        Url url = urlRepository.findByShortenUrl(shortUrl);
+        Url saveUrl = createUrl(shortUrl, url.getOriginalUrl(), url.getRequestCount() + 1);
+        urlRepository.save(shortUrl, saveUrl);
+    }
 
+    private String createShortUrl(String originalUrl) {
+        int initialPosition = 0;
+        String shortUrl = Sha256.encode(originalUrl, initialPosition);
+        while (urlRepository.isExistByShortUrl(shortUrl)) {
+            shortUrl = Sha256.encode(originalUrl, ++initialPosition);
+        }
+        return shortUrl;
+    }
+
+    private Url createUrl(String shortUrl, String originalUrl, int requestCount) {
         Url saveUrl = Url.builder()
-                .shortenUrl(url.getShortenUrl())
-                .originalUrl(url.getOriginalUrl())
-                .requestCount(url.getRequestCount() + 1)
+                .shortenUrl(shortUrl)
+                .originalUrl(originalUrl)
+                .requestCount(requestCount)
                 .build();
-
-        shortUrlDump.put(saveUrl.getShortenUrl(), saveUrl);
+        return saveUrl;
     }
 }
